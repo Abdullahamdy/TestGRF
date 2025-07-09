@@ -12,73 +12,58 @@ class UsersSeeder extends Seeder
     {
         $users = [
             [
-                'first_name' => 'Abdullah',
-                'last_name' => 'Admin',
-                'slug' => Str::slug('abdullah-admin'),
-                'x_link' => 'x_link',
-                'email_verified_at' => now(),
-                'linkedIn_link' => null,
-                'phone' => '201012589732',
-                'gender' => 1,
-                'image' => "/storage/uploads/photos/maalwriters/2025-02/11.jpg",
-                'date_of_birth' => '1997-10-16',
-                'email' => 'abdullahhamdy29@gmail.com',
-                'password' => 'stECjY*)M5LGrnEAWF0q)j6N',
+                'en' => [
+                    'first_name' => 'Abdullah',
+                    'last_name'  => 'Admin',
+                    'slug'       => Str::slug('abdullah-admin'),
+                ],
+                'ar' => [
+                    'first_name' => 'عبدالله',
+                    'last_name'  => 'مشرف',
+                    'slug'       => Str::slug('عبدالله-مشرف'),
+                ],
+                'email'     => 'abdullahhamdy29@gmail.com',
                 'user_name' => 'Abdullah_Admin',
+                'password'  => 'stECjY*)M5LGrnEAWF0q)j6N',
             ],
             [
-                'first_name' => 'Mohammed',
-                'last_name' => 'SamirAr',
-                'slug' => Str::slug('mohammed-samir-ar'),
-                'x_link' => 'x_link',
-                'email_verified_at' => now(),
-                'linkedIn_link' => null,
-                'phone' => '009659058872',
-                'gender' => 1,
-                'image' => "/storage/uploads/photos/maalwriters/2025-02/11.jpg",
-                'date_of_birth' => '1997-10-16',
-                'email' => 'mohammed_samir_ar@gmail.com',
-                'password' => 12345678,
-                'user_name' => 'mohammed_samir_ar',
-                'language' => 'ar',
-            ],
-            [
-                'first_name' => 'Mohammed',
-                'last_name' => 'SamirEn',
-                'slug' => Str::slug('mohammed-samir-en'),
-                'x_link' => 'x_link',
-                'email_verified_at' => now(),
-                'linkedIn_link' => null,
-                'phone' => '009659058873',
-                'gender' => 1,
-                'image' => "/storage/uploads/photos/maalwriters/2025-02/11.jpg",
-                'date_of_birth' => '1997-10-16',
-                'email' => 'mohammed_samir_en@gmail.com',
-                'password' => 12345678,
-                'user_name' => 'mohammed_samir_en',
-                'language' => 'en',
+                'en' => [
+                    'first_name' => 'Mohammed',
+                    'last_name'  => 'Samir',
+                    'slug'       => Str::slug('mohammed-samir'),
+                ],
+                'ar' => [
+                    'first_name' => 'محمد',
+                    'last_name'  => 'سمير',
+                    'slug'       => Str::slug('محمد-سمير'),
+                ],
+                'email'     => 'mohammed_samir@gmail.com',
+                'user_name' => 'mohammed_samir',
+                'password'  => '12345678',
             ],
         ];
 
+        foreach ($users as $userData) {
+            $en = $userData['en'];
+            $ar = $userData['ar'];
 
-            foreach ($users as $userData) {
-                 User::create($userData);
-            }
+            unset($userData['en'], $userData['ar']);
 
-    }
+            $user = User::create([
+                ...$userData,
+                'x_link'            => 'x_link',
+                'linkedIn_link'     => null,
+                'phone'             => '201012589732',
+                'gender'            => 1,
+                'image'             => "/storage/uploads/photos/maalwriters/2025-02/11.jpg",
+                'date_of_birth'     => '1997-10-16',
+                'email_verified_at' => now(),
+                'password'          => $userData['password'],
+            ]);
 
-    private function getImageFileName()
-    {
-        $number = rand(1, 10); // اختيار رقم عشوائي بين 1 و 10
-
-        // تحديد الامتداد بناءً على الرقم
-        $extension = match ($number) {
-            1, 6 => 'png',
-            2, 4, 8, 10 => 'jpeg',
-            3, 5, 7, 9 => 'jpg',
-            default => 'jpg', // باقي الأرقام تكون JPG
-        };
-
-        return "$number.$extension";
+            $user->translateOrNew('en')->fill($en);
+            $user->translateOrNew('ar')->fill($ar);
+            $user->save();
+        }
     }
 }

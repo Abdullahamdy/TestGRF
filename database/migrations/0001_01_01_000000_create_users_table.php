@@ -16,15 +16,14 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->string('language')->nullable();
             $table->string('first_name')->nullable();
             $table->string('last_name')->nullable();
+            $table->string('slug')->nullable();
             $table->string('user_name')->nullable();
             $table->string('code')->nullable();
             $table->string('phone')->nullable();
             $table->tinyInteger('gender')->nullable();
             $table->date('date_of_birth')->nullable();
-            $table->string('slug')->nullable();
             $table->string('image')->nullable();
             $table->string('linkedIn_link')->nullable();
             $table->string('x_link')->nullable();

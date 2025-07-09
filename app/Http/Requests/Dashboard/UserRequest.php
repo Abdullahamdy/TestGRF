@@ -29,11 +29,11 @@ class UserRequest extends FormRequest
                             'max:255',
                             'unique:users,user_name',
                         ],
-                        'first_name' => 'required|string|max:50|regex:/^[\p{L}\s\-]+$/u',
-                        'last_name' => 'required|string|max:50|regex:/^[\p{L}\s\-]+$/u',
-                        // 'role' => 'required_without:wirters|string|exists:roles,name',
+                        'translations.en.first_name' => 'required|string|max:255',
+                        'translations.en.last_name'  => 'required|string|max:255',
+                        'translations.ar.first_name' => 'required|string|max:255',
+                        'translations.ar.last_name'  => 'required|string|max:255',
                         'name' => 'nullable|string|max:50',
-                        'language' => Rule::requiredIf(fn() => request()->user()->hasRole('admin')),
                         'gender' => 'required|in:1,0',
                         'email' => [
                             Rule::requiredIf(!$isWriter),
@@ -60,9 +60,6 @@ class UserRequest extends FormRequest
                         'x_link' => 'nullable|string|max:255|regex:/^[a-zA-Z0-9._-]+$/|unique:users,x_link',
                         'linkedIn_link' => 'nullable|string|max:255|regex:/^[a-zA-Z0-9._-]+$/|unique:users,linkedIn_link',
                         'status' => 'required|boolean',
-                        //other data
-                        'slug' => 'nullable|string|max:100|unique:users,slug|regex:/^[a-zA-Z0-9\s]+$/|unique:users,slug',
-                        'wirters' => 'nullable|in:1,0',
                     ];
                 }
             case 'PUT':
@@ -70,8 +67,10 @@ class UserRequest extends FormRequest
                     $thisUser = $this->route('user');
                     return [
 
-                        'first_name' => 'required|string|max:50|regex:/^[\p{L}\s\-]+$/u',
-                        'last_name' => 'required|string|max:50|regex:/^[\p{L}\s\-]+$/u',
+                        'translations.en.first_name' => 'required|string|max:255',
+                        'translations.en.last_name'  => 'required|string|max:255',
+                        'translations.ar.first_name' => 'required|string|max:255',
+                        'translations.ar.last_name'  => 'required|string|max:255',
                         'user_name' => [
                             Rule::requiredIf(!$isWriter),
                             'string',

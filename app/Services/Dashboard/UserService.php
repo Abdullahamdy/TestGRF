@@ -3,121 +3,38 @@
 namespace App\Services\Dashboard;
 
 use App\Http\Resources\Dashboard\UserResource;
-use App\Mail\UserWelcomeMail;
 use App\Models\User;
+use App\Traits\HandlesTranslations;
 use App\Traits\MediaTrait;
 use Exception;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 
 class UserService
 {
-     const imageFolder =  'photos/users';
-    use MediaTrait;
+    const imageFolder =  'photos/users';
+    use MediaTrait, HandlesTranslations;
 
 
     public function index()
     {
-
-
         $users = User::orderBy('created_at', 'desc')
             ->filter()->paginate(request()->has('per_page') ? request()->per_page : 10);
         return UserResource::collection($users);
     }
 
-    // public function editorialBoard()
-    // {
-
-    //     $users =    $users = User::whereHas('roles', function ($query) {
-    //         $query->where('name', 'Editorial Board');
-    //     })->filter()->paginate(request()->has('per_page') ? request()->per_page : 10);
-    //     return EditorialBoardResource::collection($users);
-    // }
-    // public function geteditorialBoard()
-    // {
-    //     $this->authorize('viewAny', User::class);
-
-    //     $users =    $users = User::whereHas('roles', function ($query) {
-    //     $query->where('name', 'Editorial Board');
-    //     })->select('id', 'first_name', 'last_name')
-    //     ->filter()->paginate(request()->has('per_page') ? request()->per_page : 10);
-    //     return $users;
-    // }
     public function store($data)
     {
-        // if (!isset($data['wirters'])) {
-        //     $this->authorize('create', User::class);
-        // } else {
-        //     $this->authorize('create', MaaalWriter::class);
-        // }
-
         try {
-            $data['language'] = $data['language'] ?? auth()->user()->language;
-            $data['image'] = isset($data['image']) ? $this->handleImage($data['image']) : null;
-
-            if (isset($data['wirters']) && $data['wirters'] == 1) {
-                $first = Str::slug($data['first_name'] ?? 'user');
-                $last = Str::slug($data['last_name'] ?? 'writer');
-                $base = $first . '.' . $last;
-                $data['slug'] = $base;
-
-                // user_name
-                if (empty($data['user_name'])) {
-                    $username = $base;
-                    $counter = 1;
-                    while (User::where('user_name', $username)->exists()) {
-                        $username = $base . $counter;
-                        $counter++;
-                    }
-                    $data['user_name'] = $username;
-                }
-
-                // email
-                if (empty($data['email'])) {
-                    $emailBase = $base . '@example.com';
-                    $email = $emailBase;
-                    $counter = 1;
-                    while (User::where('email', $email)->exists()) {
-                        $email = $base . $counter . '@example.com';
-                        $counter++;
-                    }
-                    $data['email'] = $email;
-                }
-
-                // password
-                if (empty($data['password'])) {
-                    $data['password'] = Str::random(10);
-                    $data['password_confirmation'] = $data['password'];
-                }
-            }
-
-            // if (isset($data['role']) && $data['role'] == 'admin' && !auth()->user()->hasRole('admin')) {
-            //     unset($data['role']);
-            // }
-
-            $password = $data['password'];
-            $user = User::create($data);
-
-            // if (isset($data['role']) && !isset($data['wirters'])) {
-            //     $user->assignRole($data['role']);
-            // }
-
-            // if (isset($data['wirters']) && $data['wirters'] == 1) {
-            //     $role = auth()->user()->hasRole('admin')
-            //         ? ($data['language'] == 'ar' ? 'Arabic Writer' : 'English Writer')
-            //         : (auth()->user()->language == 'ar' ? 'Arabic Writer' : 'English Writer');
-
-            //     $user->assignRole($role);
-            // }
-
-            // if ($data['is_notify']) {
-            //     Mail::to($user->email)->send(new UserWelcomeMail($user->user_name, $password));
-            // }
+            $user = $this->storeWithTranslations($data, User::class, function ($model, $data) {
+                $this->handleCommonOperations($model, $data, [
+                    'image' => ['field' => 'image'],
+                    'role' => true
+                ]);
+            });
 
             return new UserResource($user);
         } catch (Exception $e) {
-            dd($e);
             return 'error';
         }
     }
@@ -129,53 +46,18 @@ class UserService
 
         try {
             $data = $data->all();
-            $data['language'] = $user->language;
-
-            if (isset($data['wirters']) && $data['wirters'] == 1) {
-                $first = Str::slug($data['first_name'] ?? $user->first_name ?? 'user');
-                $last = Str::slug($data['last_name'] ?? $user->last_name ?? 'writer');
-                $base = $first . '.' . $last;
-
-                if (empty($data['user_name'])) {
-                    $username = $base;
-                    $counter = 1;
-                    while (User::where('user_name', $username)->where('id', '!=', $id)->exists()) {
-                        $username = $base . $counter;
-                        $counter++;
+            $user = $this->updateWithTranslations($data, $user, function ($model, $data) {
+                if (isset($data['image']) && is_file($data['image'])) {
+                    if ($model->image) {
+                        $this->removeImage($model->getRawOriginal('image'));
                     }
-                    $data['user_name'] = $username;
                 }
 
-                if (empty($data['email'])) {
-                    $emailBase = $base . '@example.com';
-                    $email = $emailBase;
-                    $counter = 1;
-                    while (User::where('email', $email)->where('id', '!=', $id)->exists()) {
-                        $email = $base . $counter . '@example.com';
-                        $counter++;
-                    }
-                    $data['email'] = $email;
-                }
-
-                if (empty($data['password'])) {
-                    $generatedPassword = Str::random(10);
-                    $data['password'] = $generatedPassword;
-                    $data['password_confirmation'] = $generatedPassword;
-                }
-            }
-
-            if (isset($data['image']) && is_file($data['image'])) {
-                if ($user->image) {
-                    $this->removeImage($user->getRawOriginal('image'));
-                }
-                $data['image'] = $this->handleImage($data['image']);
-            }
-
-            // if (isset($data['role']) && $data['role'] == 'admin' && !auth()->user()->hasRole('admin')) {
-            //     unset($data['role']);
-            // }
-
-            $user->update($data);
+                $this->handleCommonOperations($model, $data, [
+                    'image' => ['field' => 'image'],
+                    'role' => true
+                ]);
+            });
 
             return new UserResource($user);
         } catch (Exception $e) {

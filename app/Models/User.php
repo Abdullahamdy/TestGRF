@@ -13,11 +13,13 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
+use Astrotomic\Translatable\Translatable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements TranslatableContract
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, Notifiable,HasRoles,Filterable;
+    use HasApiTokens, Notifiable,HasRoles,Filterable,Translatable;
 
     protected $filter = UserFilter::class;
     /**
@@ -26,6 +28,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $guarded = [''];
+     public $translatedAttributes = ['first_name', 'last_name', 'slug'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -65,15 +68,5 @@ class User extends Authenticatable
         return "{$this->first_name} {$this->last_name}";
     }
 
-    public function setSlugAttribute($value)
-    {
-        if (preg_match('/\p{Arabic}/u', $value)) {
-            $slug = preg_replace('/\s+/u', '-', trim($value));
-            $slug = preg_replace('/[^\p{Arabic}a-zA-Z0-9\-]/u', '', $slug);
-        } else {
-            $slug = Str::slug($value);
-        }
-
-        $this->attributes['slug'] = $slug;
-    }
+ 
 }
