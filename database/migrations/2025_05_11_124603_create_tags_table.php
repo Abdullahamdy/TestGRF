@@ -13,10 +13,6 @@ return new class extends Migration
     {
         Schema::create('tags', function (Blueprint $table) {
             $table->id();
-            $table->string('slug');
-            $table->string('name');
-            $table->text('description')->nullable();
-            $table->string('language');
             $table->integer('user_id');
             $table->timestamps();
         });

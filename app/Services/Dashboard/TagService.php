@@ -2,18 +2,17 @@
 
 namespace App\Services\Dashboard;
 
-use App\Exports\TagsExport;
 use App\Http\Resources\Dashboard\TagResource;
 use App\Models\Tag;
 use App\Models\User;
+use App\Traits\HandlesTranslations;
 use Exception;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
-use Maatwebsite\Excel\Facades\Excel;
 
 class TagService
 {
-    use AuthorizesRequests;
+    use AuthorizesRequests, HandlesTranslations;
 
     public function index()
     {
@@ -51,11 +50,11 @@ class TagService
 
     public function store($data)
     {
-        // $this->authorize('create', User::class);
         try {
-            $data['language'] = isset($data['language']) ? $data['language'] : auth()->user()->language;
             $data['user_id'] = Auth::id();
-            $tag  = Tag::create($data);
+            $tag = $this->storeWithTranslations($data, Tag::class, function ($model, $data) {
+                $this->handleCommonOperations($model, $data, []);
+            });
             return  new TagResource($tag);
         } catch (Exception $e) {
             return  'error';
@@ -67,11 +66,11 @@ class TagService
         $tag   = Tag::find($id);
         if (!$tag)  return 'not_found';
 
-        // $this->authorize('update', $tag);
 
         try {
-            $data['language'] = $tag->language;
-            $tag->update($data);
+            $tag = $this->updateWithTranslations($data, $tag, function ($model, $data) {
+                $this->handleCommonOperations($model, $data, []);
+            });
 
             return  new TagResource($tag);
         } catch (Exception $e) {

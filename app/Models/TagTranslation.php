@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
-class UserTranslation extends Model
-{
-    public $timestamps = false;
-    protected $fillable = ['', 'last_name', 'slug'];
 
+use Illuminate\Support\Str;
+
+class TagTranslation extends Model
+{
+        public $timestamps = false;
+     protected $fillable = ['description','name' , 'slug'];
     public function setSlugAttribute($value)
     {
         if (preg_match('/\p{Arabic}/u', $value)) {

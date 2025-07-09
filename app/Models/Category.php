@@ -6,25 +6,16 @@ use App\Filters\CategoryFilter;
 use App\Traits\Filterable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
+use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
+use Astrotomic\Translatable\Translatable;
 
-class Category extends Model
+class Category extends Model implements TranslatableContract
 {
-    use HasFactory, Filterable;
+    use HasFactory, Filterable, Translatable;
     protected $filter = CategoryFilter::class;
-    protected $fillable = ['language', 'parent_id',  'name', 'slug','user_id', 'description', 'show_in_dashboard'];
+    protected $fillable = ['parent_id', 'user_id'];
+    public $translatedAttributes = ['name', 'description', 'slug'];
 
-    public function setSlugAttribute($value)
-    {
-        if (preg_match('/\p{Arabic}/u', $value)) {
-            $slug = preg_replace('/\s+/u', '-', trim($value));
-            $slug = preg_replace('/[^\p{Arabic}a-zA-Z0-9\-]/u', '', $slug);
-        } else {
-            $slug = Str::slug($value);
-        }
-
-        $this->attributes['slug'] = $slug;
-    }
     public function news()
     {
         return $this->hasMany(News::class);
@@ -32,8 +23,6 @@ class Category extends Model
     public static function forDropdown()
     {
         $dropdown =   self::query()
-        ->where('language',app()->getLocale())
-        ->where('show_in_dashboard',true)
             ->select(['id', 'name'])->whereNull('parent_id')->filter();
         $perPage = request('per_page', 10);
 
@@ -48,7 +37,8 @@ class Category extends Model
         return $dropdown->paginate($perPage);
     }
 
-    public function user(){
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 
@@ -56,7 +46,4 @@ class Category extends Model
     {
         return $this->belongsTo(Self::class, 'parent_id');
     }
-
-
-
 }

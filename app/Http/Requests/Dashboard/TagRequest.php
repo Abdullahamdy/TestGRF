@@ -25,31 +25,21 @@ class TagRequest extends FormRequest
         switch ($this->method()) {
             case 'POST': {
                     return [
-                        'name' => [
-                            'required',
-                            'string',
-                            'max:255',
-                             Rule::unique('tags', 'name'),
 
-                        ],
-                        'language' => Rule::requiredIf(fn() => request()->user()->hasRole('admin')),
-                        'description' => 'nullable|string|max:1000',
+                        'translations.en.name' => 'required|string|max:255',
+                        'translations.en.description'  => 'required|string|max:255',
+                        'translations.ar.name' => 'required|string|max:255',
+                        'translations.ar.description'  => 'required|string|max:255',
                     ];
                 }
             case 'PUT':
             case 'PATCH': {
                     $thisTag = $this->route('tag');
                     return [
-                        'name' => [
-                            'required',
-                            'string',
-                            'max:255',
-                            Rule::unique('tags', 'name')->ignore($thisTag),
-                        ],
-                        'description' => 'nullable|string|max:1000',
-                        'type' => 'required|in:1,2',
-
-
+                        'translations.en.name' => 'required|string|max:255',
+                        'translations.en.description'  => 'required|string|max:255',
+                        'translations.ar.name' => 'required|string|max:255',
+                        'translations.ar.description'  => 'required|string|max:255',
                     ];
                 }
             default:

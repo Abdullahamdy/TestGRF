@@ -23,8 +23,8 @@ class DatabaseSeeder extends Seeder
             UsersSeeder::class,
             TagSeeder::class,
             CategorySeeder::class,
-            LIFISeeder::class,
-            NewsSeeder::class,
+            // LIFISeeder::class,
+            // NewsSeeder::class,
 
         ]);
     }

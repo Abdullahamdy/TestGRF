@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use App\Models\Tag;
 use App\Models\User;
 
 trait HandlesTranslations
@@ -21,6 +22,9 @@ trait HandlesTranslations
         foreach ($translations as $locale => $fields) {
             if ($model instanceof User) {
                 $fields['slug'] = $fields['first_name'] . '-' . $fields['last_name'];
+            }
+            if ($model instanceof Tag) {
+                $fields['slug'] = $fields['name'] ;
             }
             $model->translateOrNew($locale)->fill($fields);
         }

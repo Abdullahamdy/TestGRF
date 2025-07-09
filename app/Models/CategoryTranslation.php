@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
-class UserTranslation extends Model
+use Illuminate\Database\Eloquent\Model;
+
+class CategoryTranslation extends Model
 {
     public $timestamps = false;
-    protected $fillable = ['', 'last_name', 'slug'];
+    protected $fillable = ['description','name' , 'slug'];
 
     public function setSlugAttribute($value)
     {

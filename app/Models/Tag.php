@@ -8,12 +8,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Str;
-
-class Tag extends Model
+use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
+use Astrotomic\Translatable\Translatable;
+class Tag extends Model implements TranslatableContract
 {
-    use HasFactory, Filterable;
+    use HasFactory, Filterable, Translatable;
     protected $filter = TagFilter::class;
-    protected $fillable = ['language',  'name', 'slug', 'user_id', 'description'];
+    protected $fillable = [ 'user_id'];
+     public $translatedAttributes = ['name', 'description', 'slug'];
 
     public function taggables()
     {
@@ -45,7 +47,6 @@ class Tag extends Model
     public static function forDropdown()
     {
         $dropdown =   self::query()
-        ->where('language',app()->getLocale())
             ->select(['id', 'name'])->filter();
         $perPage = request('per_page', 10);
 
