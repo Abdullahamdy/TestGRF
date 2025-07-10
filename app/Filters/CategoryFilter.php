@@ -14,10 +14,8 @@ class CategoryFilter extends BaseFilters
     protected $filters = [
         'name',
         'search',
-        'language',
         'created_date',
         'parent_id',
-        'lang',
         'main_classification_id',
         'type',
     ];
@@ -28,23 +26,17 @@ class CategoryFilter extends BaseFilters
      * @param  string|int  $value
      * @return Builder
      */
-    protected function search($value)
+   protected function search($value)
     {
         if ($value) {
-            return $this->builder->where('name', 'like', "%" . $value . "%");
+            return $this->builder->whereHas('translations', function (Builder $query) use ($value) {
+                $query->where('name', 'LIKE', "%{$value}%");
+            });
         }
 
         return $this->builder;
     }
-    protected function lang($value)
-    {
-        if ( !useradmin()) {
-            if ($value) {
-                return $this->builder->where('language', $value);
-            }
-        }
-        return $this->builder;
-    }
+
     protected function type($value)
     {
         if ($value) {
@@ -72,12 +64,6 @@ class CategoryFilter extends BaseFilters
             return $this->builder->where('name', 'LIKE', "%{$value}%");
         }
         return $this->builder;
-    }
-    protected function language($value)
-    {
-        if ($value) {
-            return $this->builder->where('language', $value);
-        }
     }
 
     protected function createdDate($value)

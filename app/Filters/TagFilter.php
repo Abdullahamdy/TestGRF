@@ -14,26 +14,17 @@ class TagFilter extends BaseFilters
     protected $filters = [
         'search',
         'name',
-        'language',
         'created_date',
         'type',
         'common_tag',
-        'lang'
     ];
-    protected function lang($value)
-    {
-        if ( !useradmin()) {
-            if ($value) {
-                return $this->builder->where('language', $value);
-            }
-        }
-        return $this->builder;
-    }
 
     protected function search($value)
     {
         if ($value) {
-            return $this->builder->where('name', 'like', "%" . $value . "%");
+            return $this->builder->whereHas('translations', function (Builder $query) use ($value) {
+                $query->where('name', 'LIKE', "%{$value}%");
+            });
         }
 
         return $this->builder;
@@ -66,13 +57,6 @@ class TagFilter extends BaseFilters
     {
         if ($value) {
             return $this->builder->where('name', 'LIKE', "%{$value}%");
-        }
-        return $this->builder;
-    }
-    protected function language($value)
-    {
-        if ($value) {
-            return $this->builder->where('language', $value);
         }
         return $this->builder;
     }

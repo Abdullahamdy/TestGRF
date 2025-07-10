@@ -18,7 +18,11 @@ class NewsController extends BaseController
         $response = $this->NewsService->index();
         return $this->respondWithPagination($response, '', 200);
     }
-
+    public function featuredNews()
+    {
+        $response = $this->NewsService->featuredNews();
+        return $this->respondWithPagination($response, '', 200);
+    }
 
     public function store(NewsRequest $request)
     {

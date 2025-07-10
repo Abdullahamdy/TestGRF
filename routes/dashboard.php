@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Middleware\SetAppLocale;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['guest'])->group(function () {
@@ -18,6 +17,6 @@ Route::namespace('App\Http\Controllers\Dashboard')->middleware(['auth:sanctum'])
     Route::resource('tag', 'TagController')->except(['edit', 'create']);
     Route::resource('user', 'UserController')->except(['edit', 'create']);
     Route::resource('news', 'NewsController')->except(['edit', 'create']);
-     Route::get('featured-news', 'NewsController@getFeatured');
-
+    Route::get('featured-news', 'NewsController@featuredNews');
+    Route::post('toggle-featured/{id}', 'NewsController@changeFeatured');
 });

@@ -84,4 +84,36 @@ abstract class BaseNewsService
         }
         return 0;
     }
+
+    protected function toogleFeatured($data)
+    {
+
+        if (isset($data['is_featured']) && $data['is_featured'] == 1) {
+
+            $featuredNewsCount = News::where('is_featured', 1)->count();
+
+            if ($featuredNewsCount < 30) {
+
+                News::increment('order_featured');
+            } else {
+                $lastFeaturedNews = News::where('is_featured', 1)
+                    ->orderByDesc('order_featured')->first();
+
+                if ($lastFeaturedNews) {
+                    $lastFeaturedNews->update([
+                        'order_featured' => 0,
+                        'is_featured' => 0,
+                    ]);
+                }
+
+
+                News::where('is_featured', 1)->where('order_featured', '>', 0)
+                    ->increment('order_featured');
+            }
+
+
+            return 1;
+        }
+        return 0;
+    }
 }

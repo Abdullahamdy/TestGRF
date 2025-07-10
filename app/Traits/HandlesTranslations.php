@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use App\Models\Category;
 use App\Models\News;
 use App\Models\Tag;
 use App\Models\User;
@@ -29,6 +30,9 @@ trait HandlesTranslations
             }
             if ($model instanceof News) {
                 $fields['slug'] = $fields['title'];
+            }
+            if ($model instanceof Category) {
+                $fields['slug'] = $fields['name'];
             }
             $model->translateOrNew($locale)->fill($fields);
         }

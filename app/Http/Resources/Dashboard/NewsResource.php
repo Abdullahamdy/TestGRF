@@ -17,7 +17,7 @@ class NewsResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
-            'publisher' => $this->publisher?->name,
+            'publisher' => $this->publisher?->full_name,
             'is_scheduled' => (bool) !$this->is_published,
             'sub_title' => $this->sub_title,
             'slug' => $this->slug,

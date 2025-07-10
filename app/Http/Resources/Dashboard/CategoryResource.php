@@ -19,12 +19,9 @@ class CategoryResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'language' => $this->language,
             'description' => $this->description,
             'slug' => $this->slug,
             'user_created'=>$this->user?->user_name,
-            'user_id'=>$this->user_id ?? null,
-            'user_name'=>$this->user ? $this->user->name : null,
             'parent_id' => $this->parent_id,
             'main_category' => $this->parent_id ? $this->mainCategory?->name : null,
             'news_count' => $this->news_count,

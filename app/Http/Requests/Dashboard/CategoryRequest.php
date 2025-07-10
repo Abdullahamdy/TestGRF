@@ -26,16 +26,11 @@ class CategoryRequest extends FormRequest
         switch ($this->method()) {
             case 'POST': {
                     return [
-                        'name' => [
-                            'required',
-                            'string',
-                            'max:255',
-                            Rule::unique('categories', 'name')
-                        ],
+                        'translations.en.name' => 'required|string|max:255',
+                        'translations.en.description'  => 'required|string|max:255',
+                        'translations.ar.name' => 'required|string|max:255',
+                        'translations.ar.description'  => 'required|string|max:255',
                         'parent_id' => 'nullable|exists:categories,id',
-                        'slug' => 'nullable|unique:categories,slug',
-                        'description' => 'nullable|string|max:1000',
-                        'type' => 'required|in:1,2',
 
                     ];
                 }
@@ -43,16 +38,11 @@ class CategoryRequest extends FormRequest
             case 'PATCH': {
                     $thisCategory = $this->route('category');
                     return [
-                        'name' => [
-                            'required',
-                            'string',
-                            'max:255',
-                            Rule::unique('categories', 'name')->ignore($thisCategory),
-                        ],
+                        'translations.en.name' => 'required|string|max:255',
+                        'translations.en.description'  => 'required|string|max:255',
+                        'translations.ar.name' => 'required|string|max:255',
+                        'translations.ar.description'  => 'required|string|max:255',
                         'parent_id' => 'nullable|exists:categories,id',
-                        'slug' => 'nullable|unique:categories,slug,' . $thisCategory,
-                        'description' => 'nullable|string|max:1000',
-                        'type' => 'required|in:1,2',
 
                     ];
                 }

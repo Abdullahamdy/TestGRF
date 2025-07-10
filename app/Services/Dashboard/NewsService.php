@@ -12,7 +12,15 @@ class NewsService extends BaseNewsService
     use HandlesTranslations;
     public function index()
     {
-        $news = News::where('type', 'normal')->with(['tags', 'category', 'sub_category', 'publisher'])->filter()
+        $news = News::where('type', 'normal')->with(['tags', 'category', 'sub_category', 'publisher'])
+            ->filter()
+            ->orderBy('created_at', 'DESC')->paginate(request()->has('per_page') ? request()->per_page : 10);
+        return NewsResource::collection($news);
+    }
+    public function featuredNews()
+    {
+        $news = News::featured()->with(['tags', 'category', 'sub_category', 'publisher'])
+            ->filter()
             ->orderBy('created_at', 'DESC')->paginate(request()->has('per_page') ? request()->per_page : 10);
         return NewsResource::collection($news);
     }
@@ -20,7 +28,7 @@ class NewsService extends BaseNewsService
     {
 
         try {
-             $data['order_featured']  = $this->handleFeatured($data);
+            $data['order_featured']  = $this->handleFeatured($data);
             $data['publisher_id'] = auth()?->user()?->id;
             $data['type'] = 'normal';
 
@@ -143,8 +151,10 @@ class NewsService extends BaseNewsService
     {
         $news   = News::find($id);
         if (!$news)  return 'not_found';
+        $news->is_featured = !$news->is_featured;
+        $news->save();
 
-        $news->is_featured =  $this->handleFeatured($news);
+        $news->is_featured =  $this->toogleFeatured($news);
 
         $news->save();
         return  'success';

@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Builder;
 
 class NewsFilter extends BaseFilters
 {
-
     /**
      * Registered filters to operate upon.
      *
@@ -17,17 +16,12 @@ class NewsFilter extends BaseFilters
         'search',
         'category_id',
         'tag_ids',
-        'editor_id',
         'type',
-        'language',
         'created_date',
         'status',
         'featured',
-        'slider',
         'type',
         'date',
-        'lang',
-        'for'
     ];
 
     /**
@@ -36,21 +30,18 @@ class NewsFilter extends BaseFilters
      * @param  string|int  $value
      * @return Builder
      */
-    protected function for($value)
-    {
-        //checkfilter
-        if ($value) {
-            return $this->builder->where('news.language', $value);
-        }
-    }
-
-    protected function language($value)
+    protected function search($value)
     {
         if ($value) {
-            return $this->builder->where('news.language', $value);
+            return $this->builder->whereHas('translations', function ($query) use ($value) {
+                $query->whereAny(['title', 'sub_title'], 'LIKE', "%$value%");
+            });
         }
         return $this->builder;
     }
+
+
+
     protected function featured($value)
     {
         if ($value != null) {
@@ -59,13 +50,6 @@ class NewsFilter extends BaseFilters
         return $this->builder;
     }
 
-    protected function search($value)
-    {
-        if ($value) {
-            return $this->builder->whereAny(['title'], 'LIKE', "%$value%");
-        }
-        return $this->builder;
-    }
 
     protected function slider($value)
     {
@@ -81,15 +65,7 @@ class NewsFilter extends BaseFilters
         }
         return $this->builder;
     }
-    protected function lang($value)
-    {
-        if (!useradmin()) {
-            if ($value) {
-                return $this->builder->where('news.language', $value);
-            }
-        }
-        return $this->builder;
-    }
+
     protected function title($value)
     {
         if ($value) {

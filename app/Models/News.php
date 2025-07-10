@@ -8,15 +8,16 @@ use App\Traits\Filterable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
-use Illuminate\Support\Str;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
 use Astrotomic\Translatable\Translatable;
+
 class News extends Model implements TranslatableContract
 {
-    use Filterable,Translatable;
+    use Filterable, Translatable;
+    protected $filter = NewsFilter::class;
 
-    public $translatedAttributes = ['title','sub_title','meta_title', 'description', 'meta_description','slug'];
-      protected $fillable = [
+    public $translatedAttributes = ['title', 'sub_title', 'meta_title', 'description', 'meta_description', 'slug'];
+    protected $fillable = [
         'source',
         'show_in_slider',
         'publisher_id',
@@ -38,7 +39,6 @@ class News extends Model implements TranslatableContract
         'direction',
 
     ];
-    protected $filter = NewsFilter::class;
 
     public function tags(): MorphToMany
     {
@@ -88,5 +88,8 @@ class News extends Model implements TranslatableContract
 
         return $dropdown->paginate($perPage);
     }
-
+    public function scopeFeatured($query)
+    {
+        return $query->where('is_featured', true)->orderBy('order_featured', 'asc');
+    }
 }
