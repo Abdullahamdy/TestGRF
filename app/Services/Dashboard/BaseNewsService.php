@@ -6,16 +6,20 @@ use App\Models\News;
 use App\Models\Tag;
 use App\Traits\MediaTrait;
 use Illuminate\Support\Str;
-
+use Illuminate\Http\UploadedFile;
 abstract class BaseNewsService
 {
     use MediaTrait;
     const imageFolder =  'photos/news';
 
-    protected function handleImage($file)
-    {
-        return $file ? $this->uploadFile($file, self::imageFolder) : null;
+ protected function handleImage($file)
+{
+    if ($file instanceof UploadedFile) {
+        return $this->uploadFile($file, self::imageFolder);
     }
+
+    return null;
+}
 
     protected function handleTags($news, $tags)
     {
@@ -30,7 +34,6 @@ abstract class BaseNewsService
                 $newTag = Tag::firstOrCreate(
                     [
                         'name' => $tag,
-                        'language' => app()->getLocale(),
                     ],
                     [
                         'slug' => Str::slug($tag),
@@ -51,25 +54,21 @@ abstract class BaseNewsService
     protected function handleFeatured($data)
     {
 
-        $language = $data['language'] ?? auth()->user()->language;
         if (isset($data['is_featured']) && $data['is_featured'] == 1 ) {
 
-            $featuredNewsCount = News::where('is_featured', 1)->where('language',$language)->count();
+            $featuredNewsCount = News::where('is_featured', 1)->count();
 
             if ($featuredNewsCount < 30) {
                 $data['order_featured'] = 1;
 
                 News::where('is_featured', 1)->where('order_featured', '>', 0)
-                ->where('language',$language)
                     ->increment('order_featured');
 
                 News::where('is_featured', 1)->where('order_featured', '>', 1)
-                ->where('language',$language)
                     ->orderBy('order_featured')
                     ->update(['order_featured' => \DB::raw('order_featured + 1')]);
             } else {
                 $lastFeaturedNews = News::where('is_featured', 1)
-                ->where('language',$language)
                 ->orderByDesc('order_featured')->first();
 
                 if ($lastFeaturedNews) {
@@ -82,7 +81,6 @@ abstract class BaseNewsService
                 $data['order_featured'] = 1;
 
                 News::where('is_featured', 1)->where('order_featured', '>', 0)
-                ->where('language',$language)
                     ->increment('order_featured');
             }
 

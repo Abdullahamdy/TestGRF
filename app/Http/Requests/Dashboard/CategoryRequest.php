@@ -32,7 +32,6 @@ class CategoryRequest extends FormRequest
                             'max:255',
                             Rule::unique('categories', 'name')
                         ],
-                        'language' => Rule::requiredIf(fn() => request()->user()->hasRole('admin')),
                         'parent_id' => 'nullable|exists:categories,id',
                         'slug' => 'nullable|unique:categories,slug',
                         'description' => 'nullable|string|max:1000',

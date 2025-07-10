@@ -9,12 +9,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Str;
-
-class News extends Model
+use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
+use Astrotomic\Translatable\Translatable;
+class News extends Model implements TranslatableContract
 {
+    use Filterable,Translatable;
+
+    public $translatedAttributes = ['title','meta_title', 'description', 'meta_description','slug'];
       protected $fillable = [
         'source',
-        'language',
         'sub_title',
         'show_in_slider',
         'publisher_id',
@@ -31,17 +34,11 @@ class News extends Model
         'sub_category_id',
         'source',
         'editor_id',
-        'slug',
-        'title',
         'type',
-        'meta_title',
-        'meta_description',
-        'description',
         'file',
         'direction',
 
     ];
-    use Filterable;
     protected $filter = NewsFilter::class;
 
     public function tags(): MorphToMany
@@ -84,24 +81,10 @@ class News extends Model
     }
 
 
-    public function setSlugAttribute($value)
-    {
-
-        if (preg_match('/\p{Arabic}/u', $value)) {
-            $slug = preg_replace('/\s+/u', '-', trim($value));
-            $slug = preg_replace('/[^\p{Arabic}a-zA-Z0-9\-]/u', '', $slug);
-        } else {
-            $slug = Str::slug($value);
-        }
-
-        $this->attributes['slug'] = $slug;
-    }
-
-
     public static function forDropdown()
     {
         $dropdown =   self::query()
-            ->select(['id', 'title', 'language'])->filter();
+            ->select(['id', 'title'])->filter();
         $perPage = request('per_page', 10);
 
         return $dropdown->paginate($perPage);

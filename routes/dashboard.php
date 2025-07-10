@@ -13,7 +13,7 @@ Route::middleware(['guest'])->group(function () {
 Route::namespace('App\Http\Controllers\Dashboard')->middleware(['auth:sanctum'])->group(function () {
 
     Route::resource('category', 'CategoryController')->except(['edit', 'create']);
-    Route::resource('lifi', 'LIFIController')->except(['edit', 'create']);
+    Route::resource('lfii', 'LIFIController')->except(['edit', 'create']);
     Route::resource('tag', 'TagController')->except(['edit', 'create']);
     Route::resource('user', 'UserController')->except(['edit', 'create']);
     Route::resource('news', 'NewsController')->except(['edit', 'create']);

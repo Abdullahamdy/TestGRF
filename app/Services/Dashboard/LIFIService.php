@@ -4,31 +4,56 @@ namespace App\Services\Dashboard;
 
 use App\Http\Resources\Dashboard\LIFIResource;
 use App\Models\News;
-
+use App\Traits\HandlesTranslations;
+use Exception;
 
 class LIFIService extends BaseNewsService
 {
+    use HandlesTranslations;
     public function index()
     {
-        $news = News::where('type','lifi')->with(['tags', 'category', 'sub_category', 'publisher'])->filter()
+        $news = News::where('type', 'lfii')->with(['tags', 'category', 'sub_category', 'publisher'])->filter()
             ->orderBy('created_at', 'DESC')->paginate(request()->has('per_page') ? request()->per_page : 10);
         return LIFIResource::collection($news);
     }
+    // $data['order_featured']  = $this->handleFeatured($data);
     public function create(array $data)
     {
-        $data['language']  = $data['language'] ?? auth()->user()->language;
-        $data['main_image']  = isset($data['main_image']) ? $this->handleImage($data['main_image']) : null;
-        $data['meta_image']  = isset($data['meta_image']) ? $this->handleImage($data['meta_image']) : null;
-        $data['publisher_id']  = auth()?->user()?->id;
-        $data['file'] = isset($data['file']) && is_file($data['file']) ? $this->handleImage($data['file']) : null;
-        $data['order_featured']  = $this->handleFeatured($data);
-        $data['type'] = 'special';
-        $data['slug'] =  isset($data['title']) ? $data['title'] : $this->generateSlug($data['title']);
 
-        $news = News::create($data);
-        $this->handleTags($news, $data['tags'] ?? []);
-        return 'success';
+        try {
+            $data['publisher_id'] = auth()?->user()?->id;
+            $data['type'] = 'lfii';
+
+            $news = $this->storeWithTranslations($data, News::class, function ($model, $data) {
+                $this->handleNewsOperations($model, $data);
+            });
+
+            return 'success';
+        } catch (Exception $e) {
+            return 'error';
+        }
     }
+
+    private function handleNewsOperations($model, $data)
+    {
+        $imageFields = ['main_image', 'meta_image'];
+        foreach ($imageFields as $field) {
+            if (isset($data[$field])) {
+                $model->$field = $this->handleImage($data[$field]);
+            }
+        }
+
+        if (isset($data['file']) && is_file($data['file'])) {
+            $model->file = $this->handleImage($data['file']);
+        }
+
+        if (isset($data['tags'])) {
+            $model->save();
+            $this->handleTags($model, $data['tags']);
+        }
+    }
+
+
     public function show(string $id)
     {
         $news   = News::find($id);
@@ -52,26 +77,37 @@ class LIFIService extends BaseNewsService
     {
         $news = News::findOrFail($id);
 
-        $newsData = [
-            'language' => $news->language,
-            'main_image' => isset($data['main_image'])
-                ? $this->handleImage($data['main_image'])
-                : $news->main_image,
-            'meta_image' => isset($data['meta_image'])
-                ? $this->handleImage($data['meta_image'])
-                : $news->meta_image,
-            'file' => isset($data['file']) && is_file($data['file'])
-                ? $this->handleImage($data['file'])
-                : $news->file,
-            'order_featured' => $this->handleFeatured($data),
-            'type' => 'special'
-        ];
+        try {
+            $data['type'] = 'lfii';
+            $data['order_featured'] = $this->handleFeatured($data);
 
-        $news->update(array_merge($data, $newsData));
+            $news = $this->updateWithTranslations($data, $news, function ($model, $data) {
+                $this->handleNewsUpdateOperations($model, $data);
+            }, function ($model, $data) {
+                $this->handleTags($model, $data['tags'] ?? []);
+            });
 
-        $this->handleTags($news, $data['tags'] ?? []);
+            return 'success';
+        } catch (Exception $e) {
+            dd($e);
+            return 'error';
+        }
+    }
 
-        return 'success';
+    protected function handleNewsUpdateOperations(&$model, &$data)
+    {
+        if (isset($data['main_image']) && is_file($data['main_image'])) {
+            $data['main_image'] = $this->handleImage($data['main_image']);
+            $model->main_image = $data['main_image'];
+        }
+        if (isset($data['meta_image']) && is_file($data['meta_image'])) {
+            $data['meta_image'] = $this->handleImage($data['meta_image']);
+            $model->meta_image = $data['meta_image'];
+        }
+        if (isset($data['file']) && is_file($data['file'])) {
+            $data['file'] = $this->handleImage($data['file']);
+            $model->file = $data['file'];
+        }
     }
 
     public function changeStatus($request, $id)

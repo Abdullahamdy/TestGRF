@@ -40,7 +40,7 @@ class LIFIResource extends JsonResource
             'sub_category' => $this->sub_category?->name,
             'status' => $this->status,
             'source' => $this->source,
-            'file' => $this->type == 'special' && $this->file ?  gethost() . $this->file : null,
+            'file' => $this->type == 'lfii' && $this->file ?  gethost() . $this->file : null,
             'slug' => $this->slug,
             'description' => $this->description,
             'meta_title' => $this->meta_title,

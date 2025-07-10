@@ -13,10 +13,7 @@ return new class extends Migration
     {
         Schema::create('news', function (Blueprint $table) {
             $table->id();
-            $table->string('slug');
-            $table->string('language');
             $table->string('type');
-            $table->longText('title')->nullable();
             $table->boolean('show_in_slider')->default(false);
             $table->integer('order_slider')->default(0);
             $table->boolean('is_featured')->default(false);
@@ -28,9 +25,6 @@ return new class extends Migration
             $table->string('main_image')->nullable();
             $table->string('publisher_id')->nullable();
             $table->longText('sub_title')->nullable();
-            $table->longText('description')->nullable();
-            $table->string('meta_title')->nullable();
-            $table->text('meta_description')->nullable();
             $table->string('meta_image')->nullable();
             $table->text('image_description')->nullable();
             $table->boolean('is_published')->default(false);

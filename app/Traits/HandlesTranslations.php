@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use App\Models\News;
 use App\Models\Tag;
 use App\Models\User;
 
@@ -24,7 +25,10 @@ trait HandlesTranslations
                 $fields['slug'] = $fields['first_name'] . '-' . $fields['last_name'];
             }
             if ($model instanceof Tag) {
-                $fields['slug'] = $fields['name'] ;
+                $fields['slug'] = $fields['name'];
+            }
+            if ($model instanceof News) {
+                $fields['slug'] = $fields['title'];
             }
             $model->translateOrNew($locale)->fill($fields);
         }
@@ -81,7 +85,7 @@ trait HandlesTranslations
             if ($beforeSave && is_callable($beforeSave)) {
                 $beforeSave($model, $data);
             }
-
+           unset($data['main_image'], $data['meta_image'], $data['file'],$data['image']);
 
             $model->update($data);
 
@@ -95,21 +99,27 @@ trait HandlesTranslations
         }
     }
 
-    /**
-     * Helper method to handle common operations in callbacks
-     *
-     * @param object $model
-     * @param array $data
-     * @param array $operations
-     * @return void
-     */
+
     protected function handleCommonOperations($model, array $data, array $operations)
     {
         foreach ($operations as $operation => $config) {
             switch ($operation) {
                 case 'image':
-                    if (isset($data[$config['field'] ?? 'image']) && method_exists($this, 'handleImage')) {
-                        $model->{$config['field'] ?? 'image'} = $this->handleImage($data[$config['field'] ?? 'image']);
+                case 'main_image':
+                case 'meta_image':
+                case 'featured_image':
+                    $fieldName = $config['field'] ?? $operation;
+                    if (isset($data[$fieldName])) {
+                        if (method_exists($this, 'handleImage')) {
+                            $model->$fieldName = $this->handleImage($data[$fieldName]);
+                        }
+                    }
+                    break;
+
+                case 'file':
+                    $fieldName = $config['field'] ?? 'file';
+                    if (isset($data[$fieldName]) && is_file($data[$fieldName]) && method_exists($this, 'handleImage')) {
+                        $model->$fieldName = $this->handleImage($data[$fieldName]);
                     }
                     break;
 
@@ -120,8 +130,8 @@ trait HandlesTranslations
                     break;
 
                 case 'tags':
-                    if (isset($data['tags']) && method_exists($model, 'syncTags')) {
-                        $model->syncTags($data['tags']);
+                    if (isset($data['tags']) && method_exists($this, 'handleTags')) {
+                        $this->handleTags($model, $data['tags']);
                     }
                     break;
 
@@ -132,5 +142,25 @@ trait HandlesTranslations
                     break;
             }
         }
+    }
+    /**
+     * Helper method to handle image updates with fallback
+     *
+     * @param object $model
+     * @param array $data
+     * @param string $field
+     * @param bool $requireFile
+     * @return void
+     */
+    protected function handleImageUpdate($model, array $data, string $field, bool $requireFile = false)
+    {
+        if (isset($data[$field])) {
+            if ($requireFile && is_file($data[$field]) && method_exists($this, 'handleImage')) {
+                $model->$field = $this->handleImage($data[$field]);
+            } elseif (!$requireFile && method_exists($this, 'handleImage')) {
+                $model->$field = $this->handleImage($data[$field]);
+            }
+        }
+        // If not set, keep existing value (no change needed)
     }
 }
