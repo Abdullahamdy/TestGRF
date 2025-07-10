@@ -7,19 +7,20 @@ use App\Models\Tag;
 use App\Traits\MediaTrait;
 use Illuminate\Support\Str;
 use Illuminate\Http\UploadedFile;
+
 abstract class BaseNewsService
 {
     use MediaTrait;
     const imageFolder =  'photos/news';
 
- protected function handleImage($file)
-{
-    if ($file instanceof UploadedFile) {
-        return $this->uploadFile($file, self::imageFolder);
-    }
+    protected function handleImage($file)
+    {
+        if ($file instanceof UploadedFile) {
+            return $this->uploadFile($file, self::imageFolder);
+        }
 
-    return null;
-}
+        return null;
+    }
 
     protected function handleTags($news, $tags)
     {
@@ -38,7 +39,7 @@ abstract class BaseNewsService
                     [
                         'slug' => Str::slug($tag),
                         'description' => $tag,
-                        'user_id' => auth()->id() ,
+                        'user_id' => auth()->id(),
                     ]
                 );
 
@@ -54,22 +55,17 @@ abstract class BaseNewsService
     protected function handleFeatured($data)
     {
 
-        if (isset($data['is_featured']) && $data['is_featured'] == 1 ) {
+        if (isset($data['is_featured']) && $data['is_featured'] == 1) {
 
             $featuredNewsCount = News::where('is_featured', 1)->count();
 
             if ($featuredNewsCount < 30) {
-                $data['order_featured'] = 1;
 
                 News::where('is_featured', 1)->where('order_featured', '>', 0)
                     ->increment('order_featured');
-
-                News::where('is_featured', 1)->where('order_featured', '>', 1)
-                    ->orderBy('order_featured')
-                    ->update(['order_featured' => \DB::raw('order_featured + 1')]);
             } else {
                 $lastFeaturedNews = News::where('is_featured', 1)
-                ->orderByDesc('order_featured')->first();
+                    ->orderByDesc('order_featured')->first();
 
                 if ($lastFeaturedNews) {
                     $lastFeaturedNews->update([
@@ -78,7 +74,6 @@ abstract class BaseNewsService
                     ]);
                 }
 
-                $data['order_featured'] = 1;
 
                 News::where('is_featured', 1)->where('order_featured', '>', 0)
                     ->increment('order_featured');
@@ -89,5 +84,4 @@ abstract class BaseNewsService
         }
         return 0;
     }
-
 }

@@ -20,6 +20,7 @@ class NewsService extends BaseNewsService
     {
 
         try {
+             $data['order_featured']  = $this->handleFeatured($data);
             $data['publisher_id'] = auth()?->user()?->id;
             $data['type'] = 'normal';
 
@@ -67,6 +68,7 @@ class NewsService extends BaseNewsService
             return 'error';
         }
     }
+
 
     protected function handleNewsUpdateOperations(&$model, &$data)
     {
