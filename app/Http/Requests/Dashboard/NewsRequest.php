@@ -7,7 +7,7 @@ use Illuminate\Validation\Rule;
 
 class NewsRequest extends FormRequest
 {
-     /**
+    /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
@@ -25,26 +25,30 @@ class NewsRequest extends FormRequest
         switch ($this->method()) {
             case 'POST': {
                     return [
-                        'title' => 'required|string|max:255',
                         'source' => 'nullable|string|max:255',
-                        'editor_id' => 'required',
                         'slug' => 'nullable',
                         'is_featured' => 'boolean',
-                        'language' => Rule::requiredIf(fn() => request()->user()->hasRole('admin')),
-                        'description' => 'nullable|string',
                         'main_image' => 'required',
                         'image_description' => 'nullable|string|max:255',
                         'is_published' => 'boolean|required_if:schudle_date,NULL|required_if:schudle_time,NULL',
                         'schudle_date' => 'nullable|date|after_or_equal:today|required_if:is_published,0',
                         'schudle_time' => 'nullable|date_format:H:i|required_if:is_published,0',
-                        'meta_title' => 'nullable',
-                        'meta_description' => 'nullable|string',
                         'meta_image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
                         'category_id' => 'nullable|integer|exists:categories,id',
                         'sub_category_id' => 'nullable|integer|exists:categories,id',
                         'tags'   => 'required|array',
                         'images' => 'array',
                         'tags.*' => 'required',
+                        'translations.en.description' => 'nullable|string',
+                        'translations.ar.description' => 'nullable|string',
+                        'translations.en.meta_description' => 'nullable|string',
+                        'translations.ar.meta_description' => 'nullable|string',
+                        'translations.en.meta_title' => 'nullable',
+                        'translations.ar.meta_title' => 'nullable',
+                        'translations.en.sub_title' => 'nullable',
+                        'translations.ar.sub_title' => 'nullable',
+                        'translations.en.title' => 'required|string|max:255',
+                        'translations.ar.title' => 'required|string|max:255',
 
 
                     ];
@@ -53,28 +57,30 @@ class NewsRequest extends FormRequest
             case 'PATCH': {
                     $thisNews = $this->route('news');
                     return [
-                        'title' => 'required|string|max:255',
                         'source' => 'nullable|string|max:255',
-                        'editor_id' => 'required',
                         'slug' => 'nullable',
-                        'show_in_slider' => 'boolean',
                         'is_featured' => 'boolean',
-                        'description' => 'nullable|string',
-                        'main_image' => 'required_unless:news_type,video',
+                        'main_image' => 'required',
                         'image_description' => 'nullable|string|max:255',
                         'is_published' => 'boolean|required_if:schudle_date,NULL|required_if:schudle_time,NULL',
                         'schudle_date' => 'nullable|date|after_or_equal:today|required_if:is_published,0',
                         'schudle_time' => 'nullable|date_format:H:i|required_if:is_published,0',
-                        'meta_title' => 'nullable|string|max:255',
-                        'meta_description' => 'nullable|string',
-                        'meta_image' => 'nullable',
-                        'category_id' => 'required_if:news_type,==,normal|integer|exists:categories,id',
+                        'meta_image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
+                        'category_id' => 'nullable|integer|exists:categories,id',
                         'sub_category_id' => 'nullable|integer|exists:categories,id',
                         'tags'   => 'required|array',
+                        'images' => 'array',
                         'tags.*' => 'required',
-
-
-
+                        'translations.en.description' => 'nullable|string',
+                        'translations.ar.description' => 'nullable|string',
+                        'translations.en.meta_description' => 'nullable|string',
+                        'translations.ar.meta_description' => 'nullable|string',
+                        'translations.en.meta_title' => 'nullable',
+                        'translations.ar.meta_title' => 'nullable',
+                        'translations.en.sub_title' => 'nullable',
+                        'translations.ar.sub_title' => 'nullable',
+                        'translations.en.title' => 'required|string|max:255',
+                        'translations.ar.title' => 'required|string|max:255',
                     ];
                 }
         }

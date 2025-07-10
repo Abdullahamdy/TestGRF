@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Middleware\SetAppLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -12,13 +14,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
           then: function () {
 
-        Route::middleware('api')
+        Route::middleware(['api',SetAppLocale::class])
             ->prefix('dashboard')
             ->group(base_path('routes/dashboard.php'));
 
     },
     )->withMiddleware(function (Middleware $middleware) {
-        //
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

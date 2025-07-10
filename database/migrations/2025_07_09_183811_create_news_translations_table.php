@@ -14,8 +14,9 @@ return new class extends Migration
         Schema::create('news_translations', function (Blueprint $table) {
             $table->id();
             $table->string('slug');
-            $table->longText('title')->nullable();
-            $table->longText('description')->nullable();
+            $table->string('title')->nullable();
+            $table->string('sub_title')->nullable();
+            $table->text('description')->nullable();
             $table->string('meta_title')->nullable();
             $table->text('meta_description')->nullable();
             $table->string('locale')->index();

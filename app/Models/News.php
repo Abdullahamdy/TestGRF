@@ -15,10 +15,9 @@ class News extends Model implements TranslatableContract
 {
     use Filterable,Translatable;
 
-    public $translatedAttributes = ['title','meta_title', 'description', 'meta_description','slug'];
+    public $translatedAttributes = ['title','sub_title','meta_title', 'description', 'meta_description','slug'];
       protected $fillable = [
         'source',
-        'sub_title',
         'show_in_slider',
         'publisher_id',
         'is_featured',

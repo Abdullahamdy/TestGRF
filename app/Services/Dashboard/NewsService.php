@@ -4,10 +4,12 @@ namespace App\Services\Dashboard;
 
 use App\Http\Resources\Dashboard\NewsResource;
 use App\Models\News;
+use App\Traits\HandlesTranslations;
+use Exception;
 
 class NewsService extends BaseNewsService
 {
-
+    use HandlesTranslations;
     public function index()
     {
         $news = News::where('type', 'normal')->with(['tags', 'category', 'sub_category', 'publisher'])->filter()
@@ -17,35 +19,65 @@ class NewsService extends BaseNewsService
     public function create(array $data)
     {
 
-        $data['language'] = $data['language'] ?? auth()->user()->language;
-        $data['main_image'] = isset($data['main_image']) ? $this->handleImage($data['main_image']) : null;
-        $data['meta_image'] = isset($data['meta_image']) ? $this->handleImage($data['meta_image']) : null;
-        $data['publisher_id'] =  auth()?->user()?->id;
-        $data['order_featured'] = $this->handleFeatured($data);
-        $data['type'] = 'normal';
-        $data['slug'] =  isset($data['title']) ? $data['title'] : $this->generateSlug($data['title']);
-        $news = News::create($data);
-        $this->handleTags($news, $data['tags'] ?? []);
-        return 'success';
+        try {
+            $data['publisher_id'] = auth()?->user()?->id;
+            $data['type'] = 'normal';
+
+            $this->storeWithTranslations($data, News::class, function ($model, $data) {
+                $this->handleNewsOperations($model, $data);
+            });
+
+            return 'success';
+        } catch (Exception $e) {
+            return 'error';
+        }
+    }
+
+    private function handleNewsOperations($model, $data)
+    {
+        $imageFields = ['main_image', 'meta_image'];
+        foreach ($imageFields as $field) {
+            if (isset($data[$field])) {
+                $model->$field = $this->handleImage($data[$field]);
+            }
+        }
+
+        if (isset($data['tags'])) {
+            $model->save();
+            $this->handleTags($model, $data['tags']);
+        }
     }
 
     public function update(array $data, $id)
     {
-        $news = News::where('type', 'normal')->findOrFail($id);
+        $news = News::findOrFail($id);
 
-        $data['language'] = $news->language;
-        $data['main_image'] = isset($data['main_image'])
-            ? $this->handleImage($data['main_image'])
-            : $news->main_image;
-        $data['meta_image'] = isset($data['meta_image'])
-            ? $this->handleImage($data['meta_image'])
-            : $news->meta_image;
-        $data['order_featured'] = $this->handleFeatured($data);
-        $data['publisher_id'] =  isset($data['editor_id']) ? $data['editor_id'] : auth()?->user()?->id;
-        $data['type'] = 'normal';
+        try {
+            $data['type'] = 'normal';
+            $data['order_featured'] = $this->handleFeatured($data);
 
-        $news->update($data);
-        return 'success';
+            $news = $this->updateWithTranslations($data, $news, function ($model, $data) {
+                $this->handleNewsUpdateOperations($model, $data);
+            }, function ($model, $data) {
+                $this->handleTags($model, $data['tags'] ?? []);
+            });
+
+            return 'success';
+        } catch (Exception $e) {
+            return 'error';
+        }
+    }
+
+    protected function handleNewsUpdateOperations(&$model, &$data)
+    {
+        if (isset($data['main_image']) && is_file($data['main_image'])) {
+            $data['main_image'] = $this->handleImage($data['main_image']);
+            $model->main_image = $data['main_image'];
+        }
+        if (isset($data['meta_image']) && is_file($data['meta_image'])) {
+            $data['meta_image'] = $this->handleImage($data['meta_image']);
+            $model->meta_image = $data['meta_image'];
+        }
     }
     private function generateSlug($title)
     {

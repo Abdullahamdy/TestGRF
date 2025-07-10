@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\SetAppLocale;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['guest'])->group(function () {

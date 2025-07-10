@@ -14,16 +14,12 @@ class NewsResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-       return [
+        return [
             'id' => $this->id,
             'title' => $this->title,
-            'editor_name' => $this->editor_name,
-            'short_url' => $this->short_url,
-            'editor_id' => $this->editor_id,
             'publisher' => $this->publisher?->name,
             'is_scheduled' => (bool) !$this->is_published,
             'sub_title' => $this->sub_title,
-            'language' => $this->language,
             'slug' => $this->slug,
             'is_featured' => $this->is_featured,
             'image' => $this->main_image ?  gethost() . $this->main_image : null,

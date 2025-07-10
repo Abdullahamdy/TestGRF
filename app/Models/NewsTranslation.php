@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 
 class NewsTranslation extends Model
 {
-     public $fillable = ['title','meta_title', 'description', 'meta_description','slug'];
+     public $fillable = ['title', 'sub_title','meta_title', 'description', 'meta_description','slug'];
       public function setSlugAttribute($value)
     {
 
