@@ -19,4 +19,13 @@ Route::namespace('App\Http\Controllers\Dashboard')->middleware(['auth:sanctum'])
     Route::resource('news', 'NewsController')->except(['edit', 'create']);
     Route::get('featured-news', 'NewsController@featuredNews');
     Route::post('toggle-featured/{id}', 'NewsController@changeFeatured');
+
+
+    Route::resource('ticket', 'TicketController')->except(['edit', 'create']);
+    Route::post('message-replay/{id}', 'TicketController@messageReplay');
+
+    Route::resource('role', 'RoleController')->except(['edit', 'create']);
+    Route::get('get-role', 'RoleController@getRoles');
+    Route::post('role-update-status', 'RoleController@updateStatus');
+    Route::get('permissions', 'RoleController@permissions');
 });

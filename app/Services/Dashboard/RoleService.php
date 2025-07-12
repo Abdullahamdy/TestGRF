@@ -2,9 +2,11 @@
 
 namespace App\Services\Dashboard;
 
+use App\Exceptions\UnauthorizedAccessException;
 use App\Http\Resources\Dashboard\RoleResource;
 use App\Models\Permission;
 use App\Models\User;
+use App\Models\Role as RoleModel;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -12,38 +14,31 @@ use Spatie\Permission\Models\Role;
 
 class RoleService
 {
-
-    public function index(): Collection
+    protected $modelName = RoleModel::class;
+    public function index()
     {
-        return Role::withCount('users')
-            ->when(request()->has('status'), function ($query) {
-                $query->where('status', request('status'));
-            })
-            ->when(request()->has('search'), function ($query) {
-                $query->where('name', 'LIKE', '%' . request('search') . '%');
-            })
-            ->when(request()->has('created_at'), function ($query) {
-                $query->whereDate('created_at', '>=', request('created_at'));
-            })
-            ->when(request()->has('role_id'), function ($query) {
-                $query->where('name', 'LIKE', '%' . request('role_id') . '%');
-            })
-            ->when(request()->has('language'), function ($query) {
-                $query->where('language',  request('language') );
-            })
-            ->orderBy('created_at', 'desc')
-            ->get(['id', 'name']);
+        // if (!auth()->user()->can('viewAny', $this->modelName)) {
+        //     throw new UnauthorizedAccessException();
+        // }
+        $users =  RoleModel::orderBy('id','desc')->filter()->withCount('users')
+            ->paginate(request('per_page', 10));
+        return RoleResource::collection($users);
     }
 
 
 
     public function getRoles(): Collection
     {
-        return Role::whereNotIn('name',['English Writer','Arabic Writer'])->get(['id', 'name']);
+        return RoleModel::orderBy('id', 'desc')
+            ->active()
+            ->get(['id', 'name']);
     }
     //create mode role and permissions
     public function store($request)
     {
+        // if (!auth()->user()->can('create', $this->modelName)) {
+        //     throw new UnauthorizedAccessException();
+        // }
         try {
             DB::beginTransaction();
             $data = $request->validated();
@@ -69,18 +64,11 @@ class RoleService
         foreach (adminDbTablesPermissions() as $item) {
             $permissions[$item] = Permission::query()
                 ->where(function ($query) use ($item) {
-                    $query->where('name', 'LIKE', "%{$item}")
-                        ->orWhere('name', 'LIKE', "%{$item}_" . app()->getLocale());
+                    $query->where('name', 'LIKE', "%{$item}");
                 })
                 ->where('guard_name', 'sanctum')
-                ->where(function ($query) {
-                    $query->where('language', app()->getLocale())
-                        ->orWhereNull('language');
-                })
-                ->orderBy('for')
-                ->select('display_name')
                 ->get()
-                ->pluck('display_name');
+                ->pluck('name');
         }
 
         return $permissions;
@@ -88,18 +76,22 @@ class RoleService
 
     public function show($role_id)
     {
+        $modelName = RoleModel::find($role_id);
+        // if (!auth()->user()->can('view', $modelName)) {
+        //     throw new UnauthorizedAccessException();
+        // }
         $role =   Role::find($role_id);
         if (!$role)
             return 'not_found';
+
         return new RoleResource($role);
     }
     public function assignPermissionToRole($role, $displaypermissions)
     {
-        $language = auth()->user()->hasRole('admin') && request('language') ? request('language') : app()->getLocale();
-        $permissions = array_map(function ($item) use ($language) {
+        $permissions = array_map(function ($item) {
             $all_permission = Permission::pluck('name')->toArray();
-            if (in_array($item . "_" . $language, $all_permission)) {
-                return  $item . "_" . $language;
+            if (in_array($item, $all_permission)) {
+                return  $item;
             } else {
 
                 return $item;
@@ -129,16 +121,20 @@ class RoleService
 
     public function update($request, int $role_id): string
     {
-        $role =   Role::find($role_id);
-        if (!$role)
+        $model =   Role::find($role_id);
+        $modelName = RoleModel::find($role_id);
+
+        // if (!auth()->user()->can('update', $modelName)) {
+        //     throw new UnauthorizedAccessException();
+        // }
+        if (!$model)
             return 'not_found';
         try {
-            $role->name = $request->name;
-            $role->save();
-            $this->assignPermissionToRole($role, $request->permissions);
+            $model->name = $request->name;
+            $model->save();
+            $this->assignPermissionToRole($model, $request->permissions);
             return 'success';
         } catch (\Exception $exception) {
-            dd($exception);
             errorLog(__FILE__, __LINE__, $exception->getMessage(), $exception);
             return 'server_error';
         }
@@ -146,7 +142,11 @@ class RoleService
 
     public function destroy(int $role_id): string
     {
-        $role =   Role::find($role_id);
+        $modelName = RoleModel::find($role_id);
+
+        // if (!auth()->user()->can('delete', $modelName)) {
+        //     throw new UnauthorizedAccessException();
+        // }
         $role = Role::query()->find($role_id);
         if (!$role)
             return 'not_found';

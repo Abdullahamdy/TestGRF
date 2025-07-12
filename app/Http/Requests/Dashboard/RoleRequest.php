@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Dashboard;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class RoleRequest extends FormRequest
 {
@@ -28,9 +27,8 @@ class RoleRequest extends FormRequest
             case 'POST': {
                     return [
                         'name'          => 'required|string|min:3|max:50|unique:roles,name',
-                        'language' => Rule::requiredIf(fn() => request()->user()->hasRole('admin')),
                         'permissions'   => 'required|array',
-                        'permissions.*' => 'required|string|min:3|max:150|exists:permissions,display_name',
+                        'permissions.*' => 'required|string|min:3|max:150|exists:permissions,name',
                     ];
                 }
             case 'PUT':
@@ -39,7 +37,7 @@ class RoleRequest extends FormRequest
                     return [
                         'name'          => 'required|string|min:3|max:50|unique:roles,name,' . $thisRole,
                         'permissions'   => 'required|array',
-                        'permissions.*' => 'required|string|min:3|max:150|exists:permissions,display_name',
+                        'permissions.*' => 'required|string|min:3|max:150|exists:permissions,name',
                     ];
                 }
             default:
